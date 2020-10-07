@@ -1,5 +1,4 @@
-dotenv = require('dotenv').config()
-const { json } = require('body-parser')
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
@@ -12,23 +11,18 @@ app.use(express.static('build'))
 app.use(express.json())
 
 // LOGGER MIDDLEWARE
-morgan.token('body', (req, res) => {
-  if (req.method === 'POST') {
-    return JSON.stringify(req.body)
+morgan.token('body', (request) => {
+  if (request.method === 'POST') {
+    return JSON.stringify(request.body)
   }
-  else return " "
+  else return ' '
 })
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-// TODO: Possibly deprecated
-const generateId = () => {
-  // Generates a random ID with 15 digits
-  return Math.round(Math.random() * Math.pow(10, 15))
-}
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 // INFO
 app.get('/info', (request, response) => {
-  const nofPersons = Person.count({}).then(count => {
+  Person.count({}).then(count => {
     console.log('count ', count)
     const date = new Date()
     response.send(
@@ -48,7 +42,7 @@ app.get('/api/persons', (request, response) => {
 // GET ONE
 app.get('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
-  const person = Person.findById(id).then(person => {
+  Person.findById(id).then(person => {
     if (person) {
       response.json(person)
     } else {
@@ -59,7 +53,7 @@ app.get('/api/persons/:id', (request, response, next) => {
 
 // CREATE
 app.post('/api/persons', (request, response, next) => {
-  const {number, name} = request.body
+  const { number, name } = request.body
   const person = new Person({ name, number })
   person.save()
     .then(savedPerson => savedPerson.toJSON())
@@ -72,9 +66,7 @@ app.post('/api/persons', (request, response, next) => {
 // DELETE
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then(result => {
-      response.status(204).end()
-    })
+    .then(response.status(204).end())
     .catch(error => next(error))
 })
 
@@ -84,7 +76,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 
   Person.findByIdAndUpdate(
     request.params.id,
-    {name: body.name, number: body.number},
+    { name: body.name, number: body.number },
     { new: true, runValidators: true, context: 'query' }
   )
     .then(updatedPerson => updatedPerson.toJSON())
