@@ -60,20 +60,13 @@ app.get('/api/persons/:id', (request, response, next) => {
 // CREATE
 app.post('/api/persons', (request, response, next) => {
   const {number, name} = request.body
-
-  // Missing info constraint
-  if (!(number && name)) {
-    return response.status(400).json({
-      error: 'name or number missing from request body'
-    })
-  }
-
-  // Create and save person to db
   const person = new Person({ name, number })
-  person.save().then(savedPerson => {
-    response.json(savedPerson)
-  })
-  .catch(error => next(error))
+  person.save()
+    .then(savedPerson => savedPerson.toJSON())
+    .then(savedAndFormattedPerson => {
+      response.json(savedAndFormattedPerson)
+    })
+    .catch(error => next(error))
 })
 
 // DELETE
@@ -88,13 +81,15 @@ app.delete('/api/persons/:id', (request, response, next) => {
 // UPDATE
 app.put('/api/persons/:id', (request, response, next) => {
   const body = request.body
-  const person = {
-    name: body.name,
-    number: body.number
-  }
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
-    .then(updatedPerson => {
-      response.json(updatedPerson)
+
+  Person.findByIdAndUpdate(
+    request.params.id,
+    {name: body.name, number: body.number},
+    { new: true, runValidators: true, context: 'query' }
+  )
+    .then(updatedPerson => updatedPerson.toJSON())
+    .then(updatedAndFormattedPerson => {
+      response.json(updatedAndFormattedPerson)
     })
     .catch(error => next(error))
 })
@@ -111,7 +106,12 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id ' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  } else if (error.name === 'TypeError') {
+    return response.status(400).json({ error: 'resource not found' })
   }
+
   next(error)
 }
 app.use(errorHandler)

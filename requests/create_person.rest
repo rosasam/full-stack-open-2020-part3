@@ -3,6 +3,6 @@ POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-    "name": "Kaladin Stormblessed",
-    "number": "111-111-1111"
+    "name": "Lift",
+    "number": "777-77-7777"
 }
