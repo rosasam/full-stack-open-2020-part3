@@ -1,7 +1,8 @@
-POST https://glacial-depths-60308.herokuapp.com/api/persons
+//POST https://glacial-depths-60308.herokuapp.com/api/persons
+POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-    "name": "Arto Helle",
-    "number": "123"
+    "name": "Kaladin Stormblessed",
+    "number": "111-111-1111"
 }
